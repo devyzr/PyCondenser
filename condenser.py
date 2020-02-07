@@ -36,18 +36,18 @@ def removeXLSXFiles():
 
 # Reads the generated sheets and then creates a worksheet witht the difference
 def getInventory():
-    print("Generating Diferences workbook")
+    print("Generating Diferences workbook...\n")
     workbook = openpyxl.Workbook()
     workbook.remove(workbook.active)
     totVentas = readData("totVentas.xlsx")
     writeToSheet(workbook, totVentas, 0, "Total Ventas")
-    print("Created Total Ventas")
+    print("Creating Total Ventas...\n")
     totCompras = readData("totCompras.xlsx")
     writeToSheet(workbook, totCompras, 1, "Total Compras")
-    print("Created Total Compras")
+    print("Creating Total Compras...\n")
     inventario = getDifference(totCompras, totVentas)
     writeToSheet(workbook, inventario, 2, "Diferencia Ventas-Compras")
-    print("Created Diferencia Ventas-Compras")
+    print("Creating Diferencia Ventas-Compras...\n")
     workbook.save("Diferencias.xlsx")
     print("Done!")
 
