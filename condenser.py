@@ -14,7 +14,7 @@ import sys
 
 
 def main():
-    # removeXLSXFiles()
+    removeXLSXFiles()
     clearLog()
     condense()
     getInventory()
@@ -23,6 +23,14 @@ def main():
 # temporary, to speed up testing
 def removeXLSXFiles():
     xlsxFiles = get_files(extension=".xlsx")
+    if len(xlsxFiles) > 0:
+        confirm = input("Delete the xlsx files in this directory? Y/N: ")
+        confirm = confirm.upper()
+        if confirm == "Y" or confirm == "YES":
+            pass
+        else:
+            return
+
     for file in xlsxFiles:
         try:
             os.remove(file)
@@ -153,6 +161,7 @@ def checkDuplicates(*files):
 
 
 # Gets the files and feeds them to the corresponding methods
+# Integrate a working directory into the argument list.
 def condense():
     if os.path.exists(".\\Diferencias.xlsx"):
         cont = input("\"Diferencias.xlsx\" already exists, continuing will "
