@@ -1,4 +1,3 @@
-from FileFinder import get_files
 import os
 import win32com.client as win32
 import openpyxl
@@ -15,7 +14,8 @@ import sys
 
 
 def main():
-    removeXLSXFiles()
+    # removeXLSXFiles()
+    clearLog()
     condense()
     getInventory()
 
@@ -32,6 +32,20 @@ def removeXLSXFiles():
                 % file.replace(".\\", "")
             )
             sys.exit()
+
+
+def clearLog():
+    if os.path.exists("log.txt"):
+        delFile = input("Clear log? Y/N: ")
+        delFile = delFile.upper()
+        if delFile == "Y" or delFile == "YES":
+            os.remove("log.txt")
+            print("Cleared log.")
+
+
+def writeToLog(line):
+    with open("log.txt", "a") as w:
+        w.write(line + "\n")
 
 
 # Reads the generated sheets and then creates a worksheet witht the difference
@@ -102,8 +116,6 @@ def checkDuplicates(*files):
     # Get items with duplicate descriptions
     n = 0
     for item in fileDesc:
-        # print(item[1])
-        # print(fileDesc.count(item[1]))
         if fileDesc.count(item) > 1:
             possibleDupes.append(fileData[n])
         n += 1
@@ -134,14 +146,24 @@ def checkDuplicates(*files):
                 dupeDict[dupeDesc] = [dupe[0], False]
 
         if len(trueDupes) > 0:
-            print("###Found the following duplicate descriptions:###")
+            writeToLog("Duplicate descriptions:")
             for n in sorted(trueDupes):
-                print('%s:\t"%s"' % (n[0], n[1]))
-            print("")
+                writeToLog('%s:\t"%s"' % (n[0], n[1]))
+            writeToLog("")
 
 
 # Gets the files and feeds them to the corresponding methods
 def condense():
+    if os.path.exists(".\\Diferencias.xlsx"):
+        cont = input("\"Diferencias.xlsx\" already exists, continuing will "
+                     "delete it, continue? Y/N: ")
+        cont = cont.upper()
+        if cont == "Y" or cont == "YES":
+            os.remove("Diferencias.xlsx")
+        else:
+            print("Exting...")
+            sys.exit()
+
     print("Transforming xls to xlsx...\n")
     xlsxFileNames = convertAndFormat()
     # Get data from files and condense to totals
@@ -167,6 +189,9 @@ def condense():
             count += 1
     # Empty or non-existant files are skipped.
     checkDuplicates(compras, recepciones, facturas, remisiones)
+    writeToLog("Done checking for duplicate descriptions, checking duplicate"
+               " IDs:")
+    writeToLog("")
     # Operations for all 4 files
     if compras and recepciones and facturas and remisiones:
         print("Joining facturas and remisiones...")
@@ -218,13 +243,12 @@ def convertAndFormat():
             if xlsxFname not in files:
                 convertToXLSX(filename)
                 filename = xlsxFname
+                formatFile(xlsxFname)
             else:
                 print(
                     "'%s' not converted, there is already a "
                     "file with the same name!" % xlsxFname
                 )
-
-            formatFile(xlsxFname)
 
             xlsxFileNames.append(xlsxFname)
     return xlsxFileNames
@@ -282,6 +306,9 @@ def joinAndTotal(dataA, dataB):
                 print("Descriptions for %s don't match:" % key)
                 print("%s: %s" % (key, dataBElem))
                 print("%s: %s" % (key, dataAElem))
+                writeToLog("%s: %s" % (key, dataBElem))
+                writeToLog("%s: %s" % (key, dataAElem))
+                writeToLog("")
                 print("")
                 printBlank = True
         else:
@@ -367,6 +394,26 @@ def convertToXLSX(filename):
     wb.SaveAs(filename + "x", FileFormat=51)
     wb.Close()
     excel.Application.Quit()
+
+
+# Gets the files of a directory
+def get_files(path=".", extension=""):
+    only_files = []
+
+    for item in os.listdir(path):
+        if path[-1] == os.sep:
+            path = path[:-1]
+        full_path = path + os.sep + item
+
+        if os.path.isfile(full_path):
+            if extension:
+                f_ext = item[-len(extension):]
+                if f_ext == extension:
+                    only_files.append(full_path)
+            else:
+                only_files.append(full_path)
+
+    return only_files
 
 
 if __name__ == "__main__":
